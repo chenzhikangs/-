@@ -1,12 +1,6 @@
 package qm;
 
-import java.sql.Array;
 import java.util.*;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,9 +16,9 @@ public class Qm {
 	public static float bestValue;//结果
 	public static float curLimit = 0;//当前的限制
 
-	public static String[] a;//
-	public static String[] b;//
-	public static float[] value;//
+	public static String[] a;
+	public static String[] b;
+	public static float[] value;
 	public static float[] test;//每次运行到叶节点的价格集合
 	public static float[] allLimit;// 全部限制
 	public static float[][] limitAttribute;//存储全部限制
@@ -66,6 +60,7 @@ public class Qm {
 			
 			for (int ad = 1; ad <= N; ad++) {//把当前记录的组合放到全部的组合里面
 				qu.nowValue.add(test[ad]);
+//				System.out.println(test[ad]);
 			}
 
 		} else {
@@ -79,7 +74,7 @@ public class Qm {
 
 			test[x] = 0;//当不满足条件时，不取这个物品，价格为0
 			back(x + 1);//走下一个节点
-
+		}
 		}
 
 
@@ -92,10 +87,9 @@ public class Qm {
 		for (int f = 1; f <= maxLimit; f++) {//对每个限制都进行回溯法处理
 			
 			qu.back(1);//回溯法开始
-			
+//			System.out.println(nowValue);
 			if (f == maxLimit) {//当进行到最后一个限制时，开始计算结果
-				int count1 = 1, count2 = 1;
-				countList(nowValue);//用来把获取的价格分组，一个小组有N（物品种类）个数据
+				countList(nowValue);//用来把获取的价格用来分组，一个小组有N（物品种类）个数据
 				b = new String[nowValue.size() / N];//创建一个数组b来存储转换过来的分组
 				for (int i = 0; i < nowValue.size() / N; i++)
 					b[i] = a[i];
@@ -105,22 +99,23 @@ public class Qm {
 					Integer num = map.get(str);
 					map.put(str, num == null ? 1 : num + 1);
 				}
-
-				Set set = map.entrySet();
-				Iterator it = set.iterator();
+				
 				float[][] float2 = new float[100001][N + 1];
-				float[] countValue = new float[100000];//
+				float[] countValue = new float[100000];
 				int countz = 0;//表示有多少种分组
 				
+				Set set = map.entrySet();
+				Iterator it = set.iterator();
 				while (it.hasNext()) {
-					Map.Entry<String, Integer> entry = (Entry<String, Integer>) it.next();
+					Map.Entry<String, Integer> entry = (Entry<String, Integer>) it.next();//entry.getValue存储的是分子重复次数，
+
 					
-					if (entry.getValue() == maxLimit) {//如果分组重复的数为10，成功
-						String tempstr = entry.getKey();//把当前数组记录下来
-						String[] arr = tempstr.split(",");//存储到总的分组来
+					if (entry.getValue() == maxLimit) {//如果分组重复次数数为10，成功
+						String tempstr = entry.getKey();//把当前数组记录下来，entry.getKey得到的是分组的值
+						String[] arr = tempstr.split(",");//存储到总的分组来，按逗号分割
 						
 						for (int l = 0; l < N; l++) {
-							float2[countz][l] = Float.parseFloat(arr[l]);//把字符串数组转换成float型的数组,一个一个转换
+							float2[countz][l] = Float.parseFloat(arr[l]);//把字符串数组转换成float型的数组,一个一个转换,得到每个分组每个元素的价格
 							countValue[countz] += float2[countz][l];//计算当前分组的总价格
 						}
 						countz++;//每次完成一个分组，countz加1
@@ -151,8 +146,9 @@ public class Qm {
 				} else {
 					str += list.get(i);//当字符串加到第N个时，不加逗号
 				}
-
+				
 			}
+//			System.out.println(str);
 			qu.a[j] = str;//存储本次得到的字符串
 			str = "";//每次存储玩把字符串设为空
 		}
