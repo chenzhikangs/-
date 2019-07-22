@@ -1,0 +1,160 @@
+package qm;
+
+import java.sql.Array;
+import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+public class Qm {
+
+	public static int N;//物品种类
+	public static int maxLimit;// 总限制数
+	public static List nowValue;//记录下全部的价格集合
+	public static int COUNT1 = 1;//用来记录运行到那个限制里面了
+	public static float bestValue;//结果
+	public static float curLimit = 0;//当前的限制
+
+	public static String[] a;//
+	public static String[] b;//
+	public static float[] value;//
+	public static float[] test;//每次运行到叶节点的价格集合
+	public static float[] allLimit;// 全部限制
+	public static float[][] limitAttribute;//存储全部限制
+
+	public void init() {
+		Scanner in = new Scanner(System.in);
+		N = in.nextInt();//输入物品种类
+
+		maxLimit = in.nextInt();//输入限制总数
+
+		bestValue = in.nextFloat();//按文档要求输入结果
+
+		value = new float[N + 1];//输入物品的价格
+		for (int i = 1; i <= N; i++) {
+			value[i] = in.nextFloat();
+		}
+
+		limitAttribute = new float[maxLimit + 1][N + 1];//输入物品的全部限制
+		for (int i = 1; i <= maxLimit; i++) {
+			for (int j = 1; j <= N; j++) {
+				limitAttribute[i][j] = in.nextFloat();//用二维数组来存储，前一维代表行，后一维代表每行的元素
+			}
+		}
+
+		allLimit = new float[maxLimit + 1];//用来存储最后一行的全部背包最大限制
+		for (int i = 1; i <= maxLimit; i++) {
+			allLimit[i] = in.nextFloat();
+		}
+
+		nowValue = new ArrayList();//记录下全部的价格集合
+		test = new float[N + 1];//每次运行到叶节点的价格集合
+	}
+
+	public void back(int x) {//回溯法
+
+		Qm qu = new Qm();//创建一个实例，便于返回数据
+
+		if (x > N) {//到达叶节点
+			
+			for (int ad = 1; ad <= N; ad++) {//把当前记录的组合放到全部的组合里面
+				qu.nowValue.add(test[ad]);
+			}
+
+		} else {
+			
+//			if (curLimit + limitAttribute[COUNT1][x] <= allLimit[COUNT1]) {//如果当前限制加上要加进来的限制<=最大的限制，
+				curLimit += limitAttribute[COUNT1][x];//更新当前限制
+				test[x] = value[x];//记录价值组合
+				back(x + 1);//走下一个节点
+				curLimit -= limitAttribute[COUNT1][x];//回溯，把当前限制回溯到前一个状态
+			}
+
+			test[x] = 0;//当不满足条件时，不取这个物品，价格为0
+			back(x + 1);//走下一个节点
+
+		}
+
+
+	public static void main(String[] args) {
+
+		Qm qu = new Qm();//创建实例对象
+
+		qu.init();//初始化
+
+		for (int f = 1; f <= maxLimit; f++) {//对每个限制都进行回溯法处理
+			
+			qu.back(1);//回溯法开始
+			
+			if (f == maxLimit) {//当进行到最后一个限制时，开始计算结果
+				int count1 = 1, count2 = 1;
+				countList(nowValue);//用来把获取的价格分组，一个小组有N（物品种类）个数据
+				b = new String[nowValue.size() / N];//创建一个数组b来存储转换过来的分组
+				for (int i = 0; i < nowValue.size() / N; i++)
+					b[i] = a[i];
+
+				Map<String, Integer> map = new HashMap<>();//用map函数来获取价格分组重复的数量，当重复到maxLimit（最大限制数）时，表明这个分组在十种限制的计算中都出现了
+				for (String str : b) {
+					Integer num = map.get(str);
+					map.put(str, num == null ? 1 : num + 1);
+				}
+
+				Set set = map.entrySet();
+				Iterator it = set.iterator();
+				float[][] float2 = new float[100001][N + 1];
+				float[] countValue = new float[100000];//
+				int countz = 0;//表示有多少种分组
+				
+				while (it.hasNext()) {
+					Map.Entry<String, Integer> entry = (Entry<String, Integer>) it.next();
+					
+					if (entry.getValue() == maxLimit) {//如果分组重复的数为10，成功
+						String tempstr = entry.getKey();//把当前数组记录下来
+						String[] arr = tempstr.split(",");//存储到总的分组来
+						
+						for (int l = 0; l < N; l++) {
+							float2[countz][l] = Float.parseFloat(arr[l]);//把字符串数组转换成float型的数组,一个一个转换
+							countValue[countz] += float2[countz][l];//计算当前分组的总价格
+						}
+						countz++;//每次完成一个分组，countz加1
+					}
+
+				}
+				float nowV = 0;
+				for (int i = 0; i < countz; i++) {//比较每个分组的总价格，取最大的那个
+					if (countValue[i] > nowV) {
+						nowV = countValue[i];
+					}
+				}
+				System.out.println(nowV);//输出最大价格，即最优惠的价格
+			}
+			COUNT1++;//当前限制运行完回溯法时，COUNT1+1
+		}
+	}
+
+	private static void countList(List list) {//用来把获取的价格分组，一个小组有N（物品种类）个数据
+		Qm qu = new Qm();//创建一个实例对象，便于返回转换成功的数组a[]
+		String str = "";//创建一个空字符串
+		qu.a = new String[(list.size() / N)];//创建一个字符串数组用于存储每次得到的组合
+		for (int j = 0; j < list.size() / N; j++) {
+			for (int i = j * N; i < (j + 1) * N; i++) {
+
+				if (i < (j + 1) * N - 1) {//list转换成字符串，并且加逗号
+					str += list.get(i) + ",";
+				} else {
+					str += list.get(i);//当字符串加到第N个时，不加逗号
+				}
+
+			}
+			qu.a[j] = str;//存储本次得到的字符串
+			str = "";//每次存储玩把字符串设为空
+		}
+	}
+}
