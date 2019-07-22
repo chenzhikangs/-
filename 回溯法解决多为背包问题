@@ -70,7 +70,7 @@ public class Qm {
 
 		} else {
 			
-//			if (curLimit + limitAttribute[COUNT1][x] <= allLimit[COUNT1]) {//如果当前限制加上要加进来的限制<=最大的限制，
+			if (curLimit + limitAttribute[COUNT1][x] <= allLimit[COUNT1]) {//如果当前限制加上要加进来的限制<=最大的限制，
 				curLimit += limitAttribute[COUNT1][x];//更新当前限制
 				test[x] = value[x];//记录价值组合
 				back(x + 1);//走下一个节点
